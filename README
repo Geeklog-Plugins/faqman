@@ -1,0 +1,45 @@
+FAQ Manager plugin 0.8.1 for Geeklog 1.5.0 and later                2008-12-07
+
+This is another updated and repackaged version of the FAQ Manager plugin,
+originally released by Blaine Lang.
+
+This version raises the minimum requirement to Geeklog 1.5.0. The install
+script no longer requires register_globals = on. As a technical side note, it
+also makes use of Geeklog's auto-uninstall for plugins now. Other than that,
+the functionality remains unchanged.
+
+See below for a list of changes in the previous release.
+
+---
+
+faqman reloaded                                                     2006-06-30
+
+This is a repackaged version of the faqman 0.8 plugin (faqman_0.8_1.3.8.zip),
+originally released by Blaine Lang.
+
+Only the following three files differ from the original:
+
+- functions.inc
+- public_html/index.php
+- language/german.php
+
+The functions.inc was originally released separately on 2004-11-26 and includes
+these changes:
+
+- fixes problems with single quotes in search queries
+- adds a check for faqman.edit permissions before adding an entry to
+  the Admin's block
+- includes support for the [faq:] autotag (requires Geeklog 1.3.10 or later).
+  see <http://www.geeklog.net/forum/viewtopic.php?showtopic=42186>
+  for details
+
+The index.php has been rewritten so that it does not use the faqman's template
+files any more which makes it integrate more nicely into Geeklog. Please note
+that the admin portions of this plugin still use their own template system
+which is known to "leak" CSS rules into Geeklog, resulting in odd color changes.
+
+The German translation (german.php) has been added for this release.
+
+Dirk Haun
+<dirk AT haun-online DOT de>
+
