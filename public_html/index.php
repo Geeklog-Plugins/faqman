@@ -1,21 +1,28 @@
 <?php
 
-/* Reminder: always indent with 4 spaces (no tabs). */
 // +---------------------------------------------------------------------------+
-// | FAQ Manager 0.8                                                           |
+// | FAQ Manager Plugin for Geeklog - The Ultimate Weblog                      |
 // +---------------------------------------------------------------------------+
-// | index.php                                                                 |
-// |                                                                           |
-// | Replacement for the original FAQ Manager index file                       |
+// | geeklog/plugins/faqman/sql/mysql_install.php                              |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2006 by the following authors:                              |
+// | Copyright (C) 2000,2001,2002,2003 by the following authors:               |
+// | Geeklog Author: Tony Bibbs       - tony@tonybibbs.com                     |
+// +---------------------------------------------------------------------------+
+// | FAQ Plugin Author                                                         |
+// | Authors: FAQ Appllication:   Stephen Ball, stephen@aquonics.com           |
+// | Conversion to Geeklog Plugin: Blaine Lang, blaine@portalparts.com         |
+// +---------------------------------------------------------------------------+
+// | Based on the Universal Plugin and prior work by the following authors:    |
+// | Upgraded for GL version 1.5 online config manager                         |
 // |                                                                           |
-// | Authors: Dirk Haun  - dirk AT haun-online DOT de                          |
+// | Copyright (C) 2002-2017 by the following authors:                         |
 // |                                                                           |
-// | Based on earlier work by Stephen Ball (original standalone FAQ Manager)   |
-// | and Blaine Lang (original FAQ Manager plugin for Geeklog).                |
-// |                                                                           |
-// | Special thanks to Soopaman for pushing some pixels around.                |
+// | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
+// |          Tom Willett       - tom AT pigstye DOT net                       |
+// |          Blaine Lang       - blaine AT portalparts DOT com                |
+// |          Dirk Haun         - dirk AT haun-online DOT de                   |
+// |          Vincent Furia     - vinny01 AT users DOT sourceforge DOT net     |
+// |          Kenji ITO         - mystralkk AT gmail DOT com                   |
 // +---------------------------------------------------------------------------+
 // |                                                                           |
 // | This program is free software; you can redistribute it and/or             |
@@ -33,46 +40,57 @@
 // | Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.           |
 // |                                                                           |
 // +---------------------------------------------------------------------------+
-//
-// $Id$
 
-require_once ('../lib-common.php');
-$tbprefix   = $_DB_table_prefix . 'faq';
+require_once '../lib-common.php';
 
-function display_error ($msg)
-{
-    $retval = COM_siteHeader ('menu', 'FAQ Manager - Error')
-            . COM_startBlock ('Error', '',
-                              COM_getBlockTemplate ('_msg_block', 'header'))
-            . '<p>' . $msg . '</p>'
-            . COM_endBlock (COM_getBlockTemplate ('_msg_block', 'footer'))
-            . COM_siteFooter ();
+/**
+ * Return error message
+ *
+ * @return string
+ */
+function display_error($msg) {
+    global $LANG_FAQ;
+
+    $content = COM_startBlock($LANG_FAQ['error'], '', COM_getBlockTemplate('_msg_block', 'header'))
+        . '<p>' . $msg . '</p>'
+        . COM_endBlock(COM_getBlockTemplate('_msg_block', 'footer'));
+    $retval = COM_createHtmlDocument(
+        $content,
+        array(
+            'pagetitle' => $LANG_FAQ['error_page'],
+            'what'      => 'menu',
+        )
+    );
 
     return $retval;
 }
 
-function display_navbar ($category = '', $c = 0, $topic = '')
-{
-    global $_CONF;
+/**
+ * Return FAQ Navbar
+ *
+ * @param  string $category
+ * @param  int    $c
+ * @param  string $topic
+ * @return string
+ */
+function displayNavbar($category = '', $c = 0, $topic = '') {
+    global $_CONF, $LANG_FAQ;
 
-    $retval = '';
+    $retval = '<p><a href="' . $_CONF['site_url'] . '/faqman/">' . $LANG_FAQ['headerlabel'] . '</a>';
 
-    $retval .= '<p><a href="' . $_CONF['site_url'] . '/faqman/">FAQ Manager</a>';
-
-    if (!empty ($category)) {
+    if (!empty($category)) {
         $retval .= ' &#187; ';
 
-        if (empty ($topic)) {
-            $retval .= $category;
+        if (empty($topic)) {
+            $retval .= FAQMAN_esc($category);
         } else {
-            $retval .= '<a href="' . $_CONF['site_url'] . '/faqman/index.php?op=cat&amp;c=' . $c . '" rel="category tag">' . $category . '</a>';
+            $retval .= '<a href="' . $_CONF['site_url'] . '/faqman/index.php?op=cat&amp;c='
+                . $c . '" rel="category tag">' . FAQMAN_esc($category) . '</a>';
         }
     }
 
-    if (!empty ($topic)) {
-        $retval .= ' &#187; ';
-
-        $retval .= $topic;
+    if (!empty($topic)) {
+        $retval .= ' &#187; ' . FAQMAN_esc($topic);
     }
 
     $retval .= '</p>' . LB;
@@ -80,144 +98,208 @@ function display_navbar ($category = '', $c = 0, $topic = '')
     return $retval;
 }
 
-function display_main ()
-{
-    global $_CONF, $_TABLES, $tbprefix;
+/**
+ * Return FAQ main display
+ *
+ * @return string
+ */
+function displayMain() {
+    global $_CONF, $_TABLES, $LANG_FAQ;
+
+    $T = COM_newTemplate($_CONF['path'] . 'plugins/faqman/templates');
+    $T->set_file(array(
+        'main' => 'main.thtml',
+        'item' => 'main-item.thtml',
+    ));
+
+    $result = DB_query("SELECT * FROM {$_TABLES['faq_categories']} ORDER BY name");
+    $total = DB_numRows($result);
+    $T->set_var(array(
+        'has_cats'      => ($total > 0),
+        'lang_CATEGORY' => $LANG_FAQ['CATEGORY'],
+        'lang_QUESTION' => $LANG_FAQ['QUESTION'],
+        'lang_ANSWER'   => $LANG_FAQ['ANSWER'],
+    ));
+
+    if ($total > 0) {
+        while (($A = DB_fetchArray($result, false)) !== false) {
+            $T->set_var(array(
+                'catID'           => $A['catID'],
+                'name'            => FAQMAN_esc($A['name']),
+                'description'     => FAQMAN_esc($A['description']),
+                'total'           => $A['total'],
+                'lang_num_topics' => $LANG_FAQ['admin_cat_num_topics'],
+            ));
+            $T->parse('cats', 'item', true);
+        }
+    }
+
+    $T->set_var('lang_no_cats', $LANG_FAQ['no_cats']);
+    $T->parse('output', 'main', true);
+    $content = COM_startBlock($LANG_FAQ['headerlabel'])
+        . $T->finish($T->get_var('output'))
+        . COM_endBlock ();
+    $retval = COM_createHTMLDocument(
+        $content,
+        array(
+            'pagetitle' => $LANG_FAQ['headerlabel'],
+            'what'      => 'menu',
+        )
+    );
+
+    return $retval;
+}
+
+/**
+ * Return FAQ category display
+ *
+ * @param  int $catID
+ * @return string
+ */
+function displayCategory($catID) {
+    global $_CONF, $_TABLES, $LANG_FAQ;
 
     $retval = '';
 
-    $result = DB_query ("SELECT * FROM " . $tbprefix . "_categories ORDER BY name");
-    $total = DB_numRows ($result);
+    $catID = (int) $catID;
+    $result = DB_query("SELECT name, description FROM {$_TABLES['faq_categories']} WHERE catID = {$catID}");
+    $A = DB_fetchArray($result, false);
+
+    if (!isset($A, $A['name'], $A['description'])) {
+        return display_error($LANG_FAQ['error_5']);
+    } else {
+        $name = $A['name'];
+        $description = $A['description'];
+    }
+
+    $result = DB_query("SELECT * FROM {$_TABLES['faq_topics']} WHERE catID = {$catID} ORDER BY question");
+    $total = DB_numRows($result);
+
     if ($total == 0) {
-        return display_error ('You have yet to add any categories to FAQ Manager.');
-    } else {
-        $book_icon = $_CONF['site_url'] . '/faqman/images/faq.gif';
-        $ul_style = ' style="margin: 0; margin-top: 10px; padding: 0px; list-style: none;"';
-        $li_style = ' style="padding-top: 0px; padding-left: 20px; margin-bottom: 3px; margin-top: 3px; background: transparent url(' . $book_icon . ') top left no-repeat;"';
-
-        $retval .= COM_siteHeader ('menu', 'FAQ Manager');
-        $retval .= COM_startBlock ('FAQ Manager');
-
-        $retval .= '<ul' . $ul_style . '>' . LB;
-        for ($i = 0; $i < $total; $i++) {
-            $A = DB_fetchArray ($result);
-
-            $retval .= '<li' . $li_style . '><a href="' . $_CONF['site_url'] . '/faqman/index.php?op=cat&amp;c=' . $A['catID'] . '">' . $A['name'] . '</a><br><b>Number of topics:</b> ' . $A['total'] . '<br>' . $A['description'] . '</li>' . LB;
-        }
-        $retval .= '</ul>' . LB;
+        return display_error($LANG_FAQ['error_6']);
     }
 
-    $retval .= COM_endBlock ();
-    $retval .= COM_siteFooter ();
+    $T = COM_newTemplate($_CONF['path'] . 'plugins/faqman/templates');
+    $T->set_file(array(
+        'cat'  => 'category.thtml',
+        'item' => 'category-item.thtml',
+    ));
+    $T->set_var(array(
+        'description'   => FAQMAN_esc($description),
+        'lang_CATEGORY' => $LANG_FAQ['CATEGORY'],
+        'lang_QUESTION' => $LANG_FAQ['QUESTION'],
+        'lang_ANSWER'   => $LANG_FAQ['ANSWER'],
+    ));
+    $content = COM_startBlock($LANG_FAQ['CATEGORY'] . ': ' . FAQMAN_esc($name));
+
+    while (($A = DB_fetchArray($result, false)) !== false) {
+        $T->set_var(array(
+            'topicID'  => $A['topicID'],
+            'question' => FAQMAN_esc($A['question']),
+        ));
+        $T->parse('cats', 'item', true);
+    }
+
+    $T->parse('output', 'cat');
+    $content .= $T->finish($T->get_var('output'))
+        . displayNavbar($name, $catID)
+        . COM_endBlock();
+    $retval = COM_createHTMLDocument(
+        $content,
+        array(
+            'pagetitle' => $name,
+            'what'      => 'menu',
+        )
+    );
 
     return $retval;
 }
 
-function display_category ($c)
-{
-    global $_CONF, $_TABLES, $tbprefix;
+/**
+ * Return FAQ topic display
+ *
+ * @param  int $topicID
+ * @return string
+ */
+function displayTopic($topicID) {
+    global $_CONF, $_TABLES, $LANG_FAQ;
 
     $retval = '';
 
-    $result = DB_query ("SELECT name, description FROM " . $tbprefix . "_categories WHERE catID = '$c'");
-    list($name, $description) = DB_fetchArray ($result);
+    $topicID = (int) $topicID;
+    $result = DB_query(
+        "SELECT catID, question, answer FROM {$_TABLES['faq_topics']} "
+        . "WHERE topicID = {$topicID}"
+    );
+    $A = DB_fetchArray($result, false);
 
-    if (empty ($name) || empty ($description)) {
-        return display_error ('You did not select a valid category.');
-    } else {
-        $result = DB_query ("SELECT * FROM " . $tbprefix . "_topics WHERE catID = '$c' ORDER BY question");
-        $total = DB_numRows ($result);
-        if ($total == 0) {
-            return display_error ('There are not any FAQ Topics in this category.');
-        } else {
-            $book_icon = $_CONF['site_url'] . '/faqman/images/faq.gif';
-            $ul_style = '';
-            $li_style = ' style="list-style-image: url(' . $book_icon . ');"';
-
-            $retval .= COM_siteHeader ('menu', $name);
-            $retval .= COM_startBlock ($name);
-            $retval .= '<p>' . $description . '</p>';
-
-            $retval .= '<ul' . $ul_style . '>' . LB;
-            for ($i = 0; $i < $total; $i++) {
-                $A = DB_fetchArray ($result);
-
-                $retval .= '<li' . $li_style . '><a href="' . $_CONF['site_url'] . '/faqman/index.php?op=view&amp;t=' . $A['topicID'] . '">' . $A['question'] . '</a></li>' . LB;
-            }
-            $retval .= '</ul>' . LB;
-
-            $retval .= display_navbar ($name, $c);
-        }
+    if (empty($A)) {
+        return display_error($LANG_FAQ['error_7']);
     }
 
-    $retval .= COM_endBlock ();
-    $retval .= COM_siteFooter ();
+    $catID = $A['catID'];
+    $question = $A['question'];
+    $answer = $A['answer'];
 
-    return $retval;
-}
+    $content = COM_startBlock($LANG_FAQ['QUESTION'] . ': ' . $question);
 
-function display_topic ($t)
-{
-    global $_CONF, $_TABLES, $tbprefix;
-
-    $retval = '';
-
-    $result = DB_query ("SELECT topicID,catID,question,answer FROM " . $tbprefix . "_topics WHERE topicID = '$t'");
-    list ($topicID, $catID, $question, $answer) = DB_fetchArray ($result);
-
-    if (empty ($topicID) || empty ($catID) || empty ($question) || empty ($answer)) {
-        return display_error ('Topic not found.');
-    } else {
-        $retval .= COM_siteHeader ('menu', $question);
-        $retval .= COM_startBlock ($question);
-
-        if (function_exists ('PLG_replaceTags')) {
-            $answer = PLG_replaceTags ($answer);
-        }
-
-        $answer = str_replace ("\r\n", '<br>', $answer);
-        $answer = str_replace ("\n", '<br>', $answer);
-        $answer = str_replace ("\r", '<br>', $answer);
-
-        $retval .= '<p>' . $answer . '</p>' . LB;
-
-        $name = DB_getItem ($tbprefix . '_categories', 'name',
-                            "catID = '$catID'");
-        $retval .= display_navbar ($name, $catID, $question);
+    if (function_exists('PLG_replaceTags')) {
+        $answer = PLG_replaceTags($answer);
     }
 
-    $retval .= COM_endBlock ();
-    $retval .= COM_siteFooter ();
+    $answer = str_replace(array("\r\n", "\n", "\r"), '<br>', $answer);
+
+    $T = COM_newTemplate($_CONF['path'] . 'plugins/faqman/templates');
+    $T->set_file(array(
+        'topic' => 'topic.thtml',
+    ));
+    $name = DB_getItem($_TABLES['faq_categories'], 'name', "catID = {$catID}");
+    $T->set_var(array(
+        'answer' => $answer,
+        'navbar' => displayNavbar($name, $catID, $question),
+        'lang_CATEGORY' => $LANG_FAQ['CATEGORY'],
+        'lang_QUESTION' => $LANG_FAQ['QUESTION'],
+        'lang_ANSWER'   => $LANG_FAQ['ANSWER'],
+    ));
+    $T->parse('output', 'topic');
+    $content .= $T->finish($T->get_var('output'))
+        . COM_endBlock ();
+    $retval = COM_createHTMLDocument(
+        $content,
+        array(
+            'pagetitle' => FAQMAN_esc($question),
+            'what'      => 'menu',
+        )
+    );
 
     return $retval;
 }
 
 // MAIN
-$display = '';
+$_SCRIPTS->setCSSFile('faqman', '/faqman/faqman.css', true);
 
-$op = COM_applyFilter ($_GET['op']);
-if (($op != 'cat') && ($op != 'view')) {
+$op = Geeklog\Input::fGet('op', '');
+if (($op !== 'cat') && ($op !== 'view')) {
     $op = '';
 }
 
-if ($op == 'cat') {
-    $c  = COM_applyFilter ($_GET['c'], true);
+if ($op === 'cat') {
+    $c  = (int) Geeklog\Input::fGet('c', 0);
+
     if ($c > 0) {
-        $display .= display_category ($c);
+        $display = displayCategory($c);
     } else {
-        $display .= display_main ();
+        $display = displayMain();
     }
-} else if ($op == 'view') {
-    $t  = COM_applyFilter ($_GET['t'], true);
+} elseif ($op === 'view') {
+    $t  = (int) Geeklog\Input::fGet('t', 0);
     if ($t > 0) {
-        $display .= display_topic ($t);
+        $display = displayTopic($t);
     } else {
-        $display .= display_main ();
+        $display = displayMain();
     }
 } else {
-    $display .= display_main ();
+    $display = displayMain();
 }
 
-echo $display;
-
-?>
+COM_output($display);

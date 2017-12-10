@@ -3,7 +3,7 @@
 // +---------------------------------------------------------------------------+
 // | FAQ Manager Plugin for Geeklog - The Ultimate Weblog                      |
 // +---------------------------------------------------------------------------+
-// | geeklog/plugins/faqman/sql/mysql_install.php                              |
+// | geeklog/plugins/faqman/autoinstall.php                                    |
 // +---------------------------------------------------------------------------+
 // | Copyright (C) 2000,2001,2002,2003 by the following authors:               |
 // | Geeklog Author: Tony Bibbs       - tony@tonybibbs.com                     |
@@ -25,14 +25,15 @@
 // |          Kenji ITO         - mystralkk AT gmail DOT com                   |
 // +---------------------------------------------------------------------------+
 // |                                                                           |
-// | This program is licensed under the terms of the GNU General Public License|
+// | This program is free software; you can redistribute it and/or             |
+// | modify it under the terms of the GNU General Public License               |
 // | as published by the Free Software Foundation; either version 2            |
 // | of the License, or (at your option) any later version.                    |
 // |                                                                           |
 // | This program is distributed in the hope that it will be useful,           |
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of            |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                      |
-// | See the GNU General Public License for more details.                      |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             |
+// | GNU General Public License for more details.                              |
 // |                                                                           |
 // | You should have received a copy of the GNU General Public License         |
 // | along with this program; if not, write to the Free Software Foundation,   |
@@ -44,20 +45,66 @@ if (stripos($_SERVER['PHP_SELF'], basename(__FILE__)) !== false) {
     die('This file cannot be used on its own!');
 }
 
-$_SQL = array();
+/**
+* Plugin autoinstall function
+*
+* @param    string  $pi_name    Plugin name
+* @return   array               Plugin information
+*/
+function plugin_autoinstall_faqman($pi_name) {
+    global $_FAQM_CONF;
+    
+    require_once dirname(__FILE__) . '/config.php';
+    
+    return array(
+        'info'      => array(
+            'pi_name'         => 'faqman',
+            'pi_display_name' => 'FAQ Manager',
+            'pi_version'      => $_FAQM_CONF['pi_version'],
+            'pi_gl_version'   => $_FAQM_CONF['gl_version'],
+            'pi_homepage'     => $_FAQM_CONF['pi_url'],
+        ),
+        'groups'   => $_FAQM_CONF['GROUPS'],
+        'features' => $_FAQM_CONF['FEATURES'],
+        'mappings' => $_FAQM_CONF['MAPPINGS'],
+        'tables'   => $_FAQM_CONF['TABLES']
+    );
+}
 
-$_SQL[] = "CREATE TABLE {$_TABLES['faq_categories']} (
-  catID int(4) NOT NULL AUTO_INCREMENT,
-  name char(50) NOT NULL DEFAULT '',
-  description VARCHAR(125) NOT NULL default '',
-  total int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (catID)
-) ENGINE=MyISAM";
+/**
+* Load plugin configuration from database
+*
+* @param    string  $pi_name    Plugin name
+* @return   boolean             true on success, otherwise false
+* @see      plugin_initconfig_faqman
+*/
+function plugin_load_configuration_faqman($pi_name) {
+    global $_CONF;
+    
+    require_once $_CONF['path_system'] . 'classes/config.class.php';
+    require_once dirname(__FILE__) . '/install_defaults.php';
+    
+    return plugin_initconfig_faqman();
+}
 
-$_SQL[] = "CREATE TABLE {$_TABLES['faq_topics']} (
-  topicID int(4) NOT NULL AUTO_INCREMENT,
-  catID int(4) NOT NULL DEFAULT '0',
-  question VARCHAR(75) NOT NULL default '',
-  answer text NOT NULL,
-  PRIMARY KEY (topicID)
-) ENGINE=MyISAM";
+/**
+* Checks if the plugin is compatible with this Geeklog version
+*
+* @param    string  $pi_name    Plugin name
+* @return   boolean             true: plugin compatible; false: not compatible
+*/
+function plugin_compatible_with_this_version_faqman($pi_name) {
+    global $_CONF, $_DB_dbms;
+    
+    // checks if we support the DBMS the site is running on
+    $dbFile = dirname(__FILE__) . '/sql/' . $_DB_dbms . '_install.php';
+    clearstatcache();
+    
+    if (!file_exists($dbFile)) {
+        return false;
+    }
+    
+    // adds checks here
+    
+    return true;
+}

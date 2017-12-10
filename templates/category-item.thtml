@@ -1,0 +1,3 @@
+  <li>
+    <img src="{site_url}/faqman/images/faq.gif" alt=""{xhtml}> <a href="{site_url}/faqman/index.php?op=view&amp;t={topicID}">{question}</a>
+  </li>

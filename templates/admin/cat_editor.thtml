@@ -1,0 +1,52 @@
+{# start {templatelocation} #}
+
+{start_editor}
+<form action="{action_url}" method="post" id="admin-faqman-cat-editor" class="compact uk-form">
+  <div class="admin_basic">
+    <dl class="form_block">
+      <dt>
+        <label>{lang_admin_cat_id}</label></dt>
+      <dd class="controls_text">{catID}</dd>
+
+      <dt>
+        <label for="admin-faqman-cat-editor-name">{lang_admin_cat_name}</label>
+      </dt>
+      <dd>
+        <input type="text" size="40" value="{name}" name="name" id="admin-faqman-cat-editor-name" class="size7"{xhtml}>
+{!if error_name}
+        <span class="validation_error_block">{error_name}</span>
+{!endif}
+      </dd>
+
+      <dt>
+        <label for="admin-faqman-cat-editor-description">{lang_admin_cat_desc}</label>
+      </dt>
+      <dd>
+        <input type="text" size="40" value="{description}" name="description" id="admin-faqman-cat-editor-desc" class="size7"{xhtml}>
+{!if error_desc}
+        <span class="validation_error_block">{error_desc}</span>
+{!endif}
+      </dd>
+
+      <dt>
+        <label>{lang_admin_cat_num_topics}</label>
+      </dt>
+      <dd class="controls_text">
+        {total}
+      </dd>
+    </dl>
+    
+    <div class="submit">
+      <button type="submit" name="mode" value="{lang_save}" class="uk-button uk-button-primary">{lang_save}</button>
+{!if allow_delete}
+      <button type="submit" name="mode" value="{lang_delete}" class="uk-button uk-button-danger" onclick="return confirm('{lang_delete_confirm}');">{lang_delete}</button>
+{!endif}
+      <button type="submit" name="mode" value="{lang_cancel}" class="uk-button">{lang_cancel}</button>
+      <input type="hidden" name="catID" value="{catID}"{xhtml}>
+      <input type="hidden" name="{token_name}" value="{token_value}"{xhtml}>
+    </div>
+  </div>
+</form>
+{end_editor}
+
+{# end {templatelocation} #}

@@ -1,0 +1,3 @@
+  <li>
+    <img src="{site_url}/faqman/images/faq.gif" alt=""{xhtml}> <a href="{site_url}/faqman/index.php?op=cat&amp;c={catID}">{name}</a><br{xhtml}><strong>{lang_num_topics}:</strong>{total}<br{xhtml}>{description}
+  </li>

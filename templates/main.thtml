@@ -1,0 +1,9 @@
+{!if has_cats}
+<ul class="faqman">
+  <li>
+    {cats}
+  </li>
+</ul>
+{!else}
+<p>{lang_no_cats}</p>
+{!endif}

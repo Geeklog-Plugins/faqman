@@ -3,7 +3,7 @@
 // +---------------------------------------------------------------------------+
 // | FAQ Manager Plugin for Geeklog - The Ultimate Weblog                      |
 // +---------------------------------------------------------------------------+
-// | geeklog/plugins/faqman/sql/mysql_install.php                              |
+// | geeklog/plugins/faqman/install_defaults.php                               |
 // +---------------------------------------------------------------------------+
 // | Copyright (C) 2000,2001,2002,2003 by the following authors:               |
 // | Geeklog Author: Tony Bibbs       - tony@tonybibbs.com                     |
@@ -25,14 +25,15 @@
 // |          Kenji ITO         - mystralkk AT gmail DOT com                   |
 // +---------------------------------------------------------------------------+
 // |                                                                           |
-// | This program is licensed under the terms of the GNU General Public License|
+// | This program is free software; you can redistribute it and/or             |
+// | modify it under the terms of the GNU General Public License               |
 // | as published by the Free Software Foundation; either version 2            |
 // | of the License, or (at your option) any later version.                    |
 // |                                                                           |
 // | This program is distributed in the hope that it will be useful,           |
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of            |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                      |
-// | See the GNU General Public License for more details.                      |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             |
+// | GNU General Public License for more details.                              |
 // |                                                                           |
 // | You should have received a copy of the GNU General Public License         |
 // | along with this program; if not, write to the Free Software Foundation,   |
@@ -44,20 +45,41 @@ if (stripos($_SERVER['PHP_SELF'], basename(__FILE__)) !== false) {
     die('This file cannot be used on its own!');
 }
 
-$_SQL = array();
+/**
+* FaqMan default settings
+*
+* Initial Installation Defaults used when loading the online configuration
+* records.  These settings are only used during the initial installation
+* and not referenced any more once the plugin is installed
+*/
+global $_FAQM_CONF_DEFAULT;
 
-$_SQL[] = "CREATE TABLE {$_TABLES['faq_categories']} (
-  catID int(4) NOT NULL AUTO_INCREMENT,
-  name char(50) NOT NULL DEFAULT '',
-  description VARCHAR(125) NOT NULL default '',
-  total int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (catID)
-) ENGINE=MyISAM";
+$_FAQM_CONF_DEFAULT = array();
 
-$_SQL[] = "CREATE TABLE {$_TABLES['faq_topics']} (
-  topicID int(4) NOT NULL AUTO_INCREMENT,
-  catID int(4) NOT NULL DEFAULT '0',
-  question VARCHAR(75) NOT NULL default '',
-  answer text NOT NULL,
-  PRIMARY KEY (topicID)
-) ENGINE=MyISAM";
+/**
+* Initializes FaqMan plugin configuration
+*
+* Creates the database entries for the configuation if they don't already
+* exist.  Initial values will be taken from $_FAQM_CONF_DEFAULT
+* if available (e.g. from an old config.php), uses $_FAQM_CONF_DEFAULT
+* otherwise.
+*
+* @return bool true: success; false: an error occurred
+*/
+function plugin_initconfig_faqman() {
+    global $_FAQM_CONF, $_FAQM_CONF_DEFAULT;
+
+    if (is_array($_FAQM_CONF) && (count($_FAQM_CONF) > 0)) {
+        $_FAQM_CONF_DEFAULT = array_merge($_FAQM_CONF_DEFAULT, $_FAQM_CONF);
+    }
+
+    $me = 'faqman';
+    $c = config::get_instance();
+
+    if (!$c->group_exists($me)) {
+//        $c->add('sg_main', null, 'subgroup', 0, 0, null, 0, true, $me);
+//        $c->add('fs_main', null, 'fieldset', 0, 0, null, 0, true, $me);
+    }
+
+    return true;
+}
