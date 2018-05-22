@@ -182,8 +182,10 @@ function plugin_chkVersion_faqman() {
  */
 function plugin_searchtypes_faqman() {
     global $LANG_FAQ;
+    
+    $tmp['faqman'] = $LANG_FAQ['searchlabel'];
 
-    return array(['faqman'] => $LANG_FAQ['searchlabel']);
+    return $tmp;
 }
 
 /**
