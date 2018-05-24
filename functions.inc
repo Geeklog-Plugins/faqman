@@ -137,12 +137,12 @@ function plugin_cclabel_faqman() {
 
     if (SEC_hasRights('faqman.edit')) {
         return array(
-            $LANG_FAQ['plugin_name'],
+            $LANG_FAQ['plugin'],
             $_CONF['site_admin_url'] . '/plugins/faqman/index.php',
             plugin_geticon_faqman(),
         );
     } else {
-        return false;
+        return array();
     }
 }
 
