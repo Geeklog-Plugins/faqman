@@ -53,7 +53,7 @@ $_TABLES['faq_topics']     = $_DB_table_prefix . 'faq_topics';
 
 // Plugin info
 $_FAQM_CONF = array(
-    'pi_version' => '0.9.0',                                        // Plugin Version
+    'pi_version' => '0.9.1',                                        // Plugin Version
     'gl_version' => '2.1.3',                                        // GL Version plugin for
     'pi_url'     => 'https://github.com/Geeklog-Plugins/faqman',    // Plugin Homepage
     'GROUPS'     => array(
