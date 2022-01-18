@@ -384,13 +384,13 @@ function plugin_autouninstall_faqman() {
         // give the name of the tables, without $_TABLES[]
         'tables' => array('faq_categories', 'faq_topics'),
         // give the full name of the group, as in the db
-        'groups' => array('faqman Admin'),
+        'groups' => array_keys($_FAQM_CONF['GROUPS']),
         // give the full name of the feature, as in the db
-        'features' => $_FAQM_CONF['FEATURES'],
+        'features' => array_keys($_FAQM_CONF['FEATURES']),
         // give the full name of the block, including 'phpblock_', etc
         'php_blocks' => array(),
         // give all vars with their name
-        'vars'=> array('faqman_admin'),
+        'vars'=> array(),
     );
 
     return $out;
