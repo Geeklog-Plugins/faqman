@@ -208,7 +208,7 @@ function plugin_dopluginsearch_faqman($query, $datestart, $dateend, $topic, $typ
         $type = 'all';
     }
 
-    // Bail if we aren't suppposed to do our search
+    // Bail if we aren't supposed to do our search
     if ((($type !== 'all') && ($type !== 'faqman')) ||
             (empty($query) && (!empty($author) ||
              !empty($datestart) ||

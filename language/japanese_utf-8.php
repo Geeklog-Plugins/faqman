@@ -39,6 +39,7 @@ if (stripos($_SERVER['PHP_SELF'], basename(__FILE__)) !== false) {
 
 $LANG_FAQ = array (
     'plugin'               => 'FAQ',
+	'plugin_name'          => 'FAQ管理',
     'CATEGORY'             => 'カテゴリー',
     'QUESTION'             => '質問',
     'ANSWER'               => '回答',

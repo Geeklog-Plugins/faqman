@@ -31,6 +31,7 @@ if (stripos($_SERVER['PHP_SELF'], basename(__FILE__)) !== false) {
 
 $LANG_FAQ = array(
     'plugin'               => 'پرسشگان',
+	'plugin_name'          => 'مدیریت پرسشگان',
     'CATEGORY'             => 'دسته بندی',
     'QUESTION'             => 'پرسش',
     'ANSWER'               => 'پاسخ',
