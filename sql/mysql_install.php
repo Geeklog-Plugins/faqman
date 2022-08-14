@@ -15,7 +15,7 @@
 // | Based on the Universal Plugin and prior work by the following authors:    |
 // | Upgraded for GL version 1.5 online config manager                         |
 // |                                                                           |
-// | Copyright (C) 2002-2017 by the following authors:                         |
+// | Copyright (C) 2002-2022 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Tom Willett       - tom AT pigstye DOT net                       |
@@ -44,6 +44,8 @@ if (stripos($_SERVER['PHP_SELF'], basename(__FILE__)) !== false) {
     die('This file cannot be used on its own!');
 }
 
+global $_TABLES;
+
 $_SQL = array();
 
 $_SQL[] = "CREATE TABLE {$_TABLES['faq_categories']} (
@@ -59,5 +61,6 @@ $_SQL[] = "CREATE TABLE {$_TABLES['faq_topics']} (
   catID int(4) NOT NULL DEFAULT '0',
   question VARCHAR(75) NOT NULL default '',
   answer text NOT NULL,
+  hits MEDIUMINT(8) UNSIGNED DEFAULT 0,
   PRIMARY KEY (topicID)
 ) ENGINE=MyISAM";

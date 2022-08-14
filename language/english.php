@@ -15,7 +15,7 @@
 // | Based on the Universal Plugin and prior work by the following authors:    |
 // | Upgraded for GL version 1.5 online config manager                         |
 // |                                                                           |
-// | Copyright (C) 2002-2017 by the following authors:                         |
+// | Copyright (C) 2002-2022 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Tom Willett       - tom AT pigstye DOT net                       |
@@ -46,10 +46,11 @@ if (stripos($_SERVER['PHP_SELF'], basename(__FILE__)) !== false) {
 
 $LANG_FAQ = array(
     'plugin'               => 'FAQ',
-	'plugin_name'          => 'FAQ Manager',
+    'plugin_name'          => 'FAQ Manager',
     'CATEGORY'             => 'Category',
     'QUESTION'             => 'Question',
     'ANSWER'               => 'Answer',
+    'HITS'                 => 'Hits',
     'headerlabel'          => 'FAQ',
     'searchlabel'          => 'FAQ',
     'searchresults'        => 'FAQ Manager Search Results',
@@ -73,6 +74,7 @@ $LANG_FAQ = array(
     'admin_topic_name'     => 'Name',
     'admin_topic_question' => 'Question',
     'admin_topic_answer'   => 'Answer',
+    'admin_topic_hits'     => 'Hits',
     'error'                => 'Error',
     'error_page'           => 'Error|FAQ',
     'error_1'              => 'The ID of the category you were trying to edit was not found.',

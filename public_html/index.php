@@ -15,7 +15,7 @@
 // | Based on the Universal Plugin and prior work by the following authors:    |
 // | Upgraded for GL version 1.5 online config manager                         |
 // |                                                                           |
-// | Copyright (C) 2002-2017 by the following authors:                         |
+// | Copyright (C) 2002-2022 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Tom Willett       - tom AT pigstye DOT net                       |
@@ -119,14 +119,15 @@ function displayMain() {
         'lang_CATEGORY' => $LANG_FAQ['CATEGORY'],
         'lang_QUESTION' => $LANG_FAQ['QUESTION'],
         'lang_ANSWER'   => $LANG_FAQ['ANSWER'],
+        'lang_HITS'     => $LANG_FAQ['HITS'],
     ));
 
     if ($total > 0) {
         while (($A = DB_fetchArray($result, false)) !== false) {
             $T->set_var(array(
                 'catID'           => $A['catID'],
-                'name'            => FAQMAN_esc($A['name']),
-                'description'     => FAQMAN_esc($A['description']),
+                'name'            => $A['name'],
+                'description'     => $A['description'],
                 'total'           => $A['total'],
                 'lang_num_topics' => $LANG_FAQ['admin_cat_num_topics'],
             ));
@@ -227,8 +228,12 @@ function displayTopic($topicID) {
     $retval = '';
 
     $topicID = (int) $topicID;
+
+    // Since v0.9.3
+    $result = DB_query("UPDATE {$_TABLES['faq_topics']} SET hits = hits + 1 WHERE topicID = {$topicID}");
+
     $result = DB_query(
-        "SELECT catID, question, answer FROM {$_TABLES['faq_topics']} "
+        "SELECT catID, question, answer, hits FROM {$_TABLES['faq_topics']} "
         . "WHERE topicID = {$topicID}"
     );
     $A = DB_fetchArray($result, false);
@@ -240,6 +245,15 @@ function displayTopic($topicID) {
     $catID = $A['catID'];
     $question = $A['question'];
     $answer = $A['answer'];
+    $hits = $A['hits'];
+
+// TODO: highlight results
+// As of Geeklog 2.2.2, COM_highlightQuery() sometimes returns bad results
+//    $query = Geeklog\Input::fGet('query', '');
+//    if (!empty($query)) {
+//        $question = COM_highlightQuery($question, $query);
+//        $answer = COM_highlightQuery($answer, $query);
+//    }
 
     $content = COM_startBlock($LANG_FAQ['QUESTION'] . ': ' . $question);
 
@@ -256,10 +270,12 @@ function displayTopic($topicID) {
     $name = DB_getItem($_TABLES['faq_categories'], 'name', "catID = {$catID}");
     $T->set_var(array(
         'answer' => $answer,
+        'hits'   => $hits,
         'navbar' => displayNavbar($name, $catID, $question),
         'lang_CATEGORY' => $LANG_FAQ['CATEGORY'],
         'lang_QUESTION' => $LANG_FAQ['QUESTION'],
         'lang_ANSWER'   => $LANG_FAQ['ANSWER'],
+        'lang_HITS'     => $LANG_FAQ['HITS'],
     ));
     $T->parse('output', 'topic');
     $content .= $T->finish($T->get_var('output'))

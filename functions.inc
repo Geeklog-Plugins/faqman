@@ -46,20 +46,24 @@ if (stripos($_SERVER['PHP_SELF'], basename(__FILE__)) !== false) {
 }
 
 // Language file Include
-$langfile = dirname(__FILE__) . '/language/' . $_CONF['language'] . '.php';
+$langfile = __DIR__ . '/language/' . $_CONF['language'] . '.php';
 clearstatcache();
 
 if (file_exists($langfile)) {
     include_once $langfile;
 } else {
-    include_once dirname(__FILE__) . '/language/english.php';
+    include_once __DIR__ . '/language/english.php';
 }
 
 // Loads the plugin configuration
 global $_FAQM_CONF;
 
-require_once dirname(__FILE__) . '/config.php';
+require_once __DIR__ . '/config.php';
 FAQMAN_loadConfig();
+
+if (version_compare($_FAQM_CONF['pi_version'], '0.9.3', '<')) {
+    plugin_upgrade_faqman();
+}
 
 // +---------------------------------------------------------------------------+
 // | Geeklog Plugin API Implementations                                        |
@@ -188,6 +192,17 @@ function plugin_searchtypes_faqman() {
     return $tmp;
 }
 
+function plugin_searchformat_faqman($id, $contentType, $content)
+{
+    global $_CONF;
+
+    if ($contentType === 'url') {
+        $content = $_CONF['site_url'] . '/faqman/index.php?op=view&amp;t=' . (int) $content;
+    }
+
+    return $content;
+}
+
 /**
 * this searches for files matching the user query and returns an array of 
 * for the header and table rows back to search.php where it will be formated and
@@ -214,114 +229,25 @@ function plugin_dopluginsearch_faqman($query, $datestart, $dateend, $topic, $typ
              !empty($datestart) ||
              !empty($dateend) ||
              !empty($topic)))) {
-        $plugin_results = new Plugin();
-        $plugin_results->plugin_name = $LANG_FAQ['plugin_name'];
-        $plugin_results->searchlabel = $LANG_FAQ['searchlabel'];
-
-        return $plugin_results;
+        return array();
     }
 
-    $select = 'SELECT topicID, question, answer, name AS category';
-    $sql = " FROM {$_TABLES['faq_topics']} topic LEFT JOIN {$_TABLES['faq_categories']} category ON topic.catID = category.catID";
+    $sql = "SELECT topicID AS id, question AS title, answer AS description, hits, name "
+        . "  FROM {$_TABLES['faq_topics']} AS t "
+        . "LEFT JOIN {$_TABLES['faq_categories']} AS c "
+        . "ON t.catID = c.catID "
+        . "WHERE 1 ";
 
-    $prefix = ' WHERE';
-    if (!empty($query)) {
-        if ($keyType === 'phrase') {
-            $mySearchTerm = DB_escapeString($query);
-            $sql .= " WHERE ((question LIKE '%$mySearchTerm%')"
-                 . " OR (answer LIKE '%$mySearchTerm%'))";
-        } elseif ($keyType === 'all') {
-            $mywords = explode (' ', $query);
-            $sql .= ' WHERE (';
-            $tmp = '';
+    $sc = new SearchCriteria('faqman', 'FAQ');
+    $columns = array('title' => 'question', 'answer');
+    list($sql, $ftsql) = $sc->buildSearchSQL($keyType, DB_escapeString($query), $columns, $sql);
 
-            foreach ($mywords as $mySearchTerm) {
-                $mySearchTerm = DB_escapeString(trim($mySearchTerm));
-                if (!empty($mySearchTerm)) {
-                    $tmp .= "((question LIKE '%$mySearchTerm%')"
-                         . " OR (answer LIKE '%$mySearchTerm%')"
-                         . " OR (MATCH (keywords) AGAINST ('%$mySearchTerm%'))) AND ";
-                }
-            }
+    $sql .= " GROUP BY t.catID ";
 
-            $tmp = substr($tmp, 0, strlen($tmp) - 5);
-            $sql .= $tmp . ')';
-        } elseif ($keyType === 'any') {
-            $mywords = explode(' ', $query);
-            $sql .= ' WHERE (';
-            $tmp = '';
+    $sc->setSQL($sql);
+    $sc->setFtSQL($ftsql);
 
-            foreach ($mywords as $mySearchTerm) {
-                $mySearchTerm = DB_escapeString(trim($mySearchTerm));
-
-                if (!empty($mySearchTerm)) {
-                    $tmp .= "((question LIKE '%$mySearchTerm%')"
-                         . " OR (answer LIKE '%$mySearchTerm%')"
-                         . " OR (MATCH (keywords) AGAINST ('%$mySearchTerm%'))) OR ";
-                }
-            }
-
-            $tmp = substr($tmp, 0, strlen($tmp) - 4);
-            $sql .= $tmp . ')';
-        } else {
-            $mySearchTerm = DB_escapeString($query);
-            $sql .= " WHERE ((question LIKE '%$mySearchTerm%')"
-                 . " OR (answer LIKE '%$mySearchTerm%'))";
-        }
-
-        $prefix = ' AND';
-    }
-
-    $sql .= ' ORDER BY topicID';
-
-    if (($perPage > 0) && ($page > 0)) {
-        $l = ($perPage * $page) - $perPage;
-        $sql .= ' LIMIT ' . $l . ',' . $perPage;
-    }
-
-    // Perform search
-    $result = DB_query($select . $sql);
-    $mycount = DB_numRows($result);
-
-    if (($perPage > 0) && ($page > 0)) {
-        $result_count = DB_query('SELECT COUNT(*)' . $sql);
-    } else {
-        $result_count = DB_query('SELECT COUNT(*) FROM ' . $_TABLES['faq_topics']);
-    }
-
-    $B = DB_fetchArray($result_count, true);
-
-    // OK, now return table header labels
-    require_once $_CONF['path_system'] . 'classes/plugin.class.php';
-
-    $plugin_results = new Plugin();
-    $plugin_results->plugin_name = 'faqman';
-    $plugin_results->searchlabel = $LANG_FAQ['searchresults'];
-    $plugin_results->addSearchHeading($LANG_FAQ['CATEGORY']);
-    $plugin_results->addSearchHeading($LANG_FAQ['QUESTION']);
-    $plugin_results->addSearchHeading($LANG_FAQ['ANSWER']);
-    $plugin_results->num_searchresults = 0;
-    $plugin_results->num_itemssearched = $B[0];
-
-    if (($perPage > 0) && ($page > 0)) {
-        $plugin_results->supports_paging = true;
-    }
-
-    for ($i = 0; $i < $mycount; $i++) {
-        $A = DB_fetchArray ($result);
-        $question = strip_tags($A['question']);
-        $answer = strip_tags(substr($A['answer'],0,60)) . '...';
-        $url = $_CONF['site_url']. '/faqman/index.php?op=view&amp;t=' . $A['topicID'];
-        $row = array(
-            $A['category'],
-            "<a href=\"$url\">$question</a>",
-            $answer
-        );
-        $plugin_results->addSearchResult($row);
-        $plugin_results->num_searchresults++;
-    }   
-
-    return $plugin_results;
+    return array($sc, null);
 }
 
 /**
@@ -345,21 +271,27 @@ function plugin_getuseroption_faqman() {
 * @return   boolean true (= success)
 */
 function plugin_upgrade_faqman() {
-    global $_CONF, $_TABLES, $_FAQM_CONF;
+    global $_CONF, $_DB_dbms, $_TABLES, $_FAQM_CONF, $_UPDATES;
 
     // Version info stored in database
     $pi_version = DB_getItem($_TABLES['plugins'], 'pi_version', "pi_name = 'faqman'");
 
     // Do upgrading
 
-//  switch ($pi_version) {
-//      case '':
-//      break;
-//      
-//      case '':
-//      break;
-//      
-//  }
+    while (version_compare($pi_version, $_FAQM_CONF['pi_version'], '<')) {
+        switch ($pi_version) {
+          case '0.9.2':
+          default:
+            require_once __DIR__ . '/sql/' . $_DB_dbms . '_updates.php';
+        
+            foreach ($_UPDATES['0.9.2'] as $sql) {
+                DB_query($sql);
+            }
+        
+            $pi_version = '0.9.3';
+            break;
+        }
+    }
 
     // Updates plugin info
 

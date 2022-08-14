@@ -31,10 +31,11 @@ if (stripos($_SERVER['PHP_SELF'], basename(__FILE__)) !== false) {
 
 $LANG_FAQ = array(
     'plugin'               => 'پرسشگان',
-	'plugin_name'          => 'مدیریت پرسشگان',
+    'plugin_name'          => 'مدیریت پرسشگان',
     'CATEGORY'             => 'دسته بندی',
     'QUESTION'             => 'پرسش',
     'ANSWER'               => 'پاسخ',
+    'HITS'                 => 'Hits',
     'headerlabel'          => 'پرسشگان',
     'searchlabel'          => 'پرسشگان',
     'searchresults'        => 'نتایج جستجو مدیریت پرسشگان',
@@ -58,6 +59,7 @@ $LANG_FAQ = array(
     'admin_topic_name'     => 'نام',
     'admin_topic_question' => 'پرسش',
     'admin_topic_answer'   => 'پاسخ',
+    'admin_topic_hits'     => 'Hits',
     'error'                => 'خطا',
     'error_page'           => 'خطا|پرسشگان',
     'error_1'              => 'شناسه دسته بندی که شما در تلاش برای ویرایش بودید یافت نشد.',

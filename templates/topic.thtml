@@ -1,2 +1,3 @@
 <p class="faqman">{lang_ANSWER}: {answer}</p>
+<p>{lang_HITS}: {hits}</p>
 {navbar}

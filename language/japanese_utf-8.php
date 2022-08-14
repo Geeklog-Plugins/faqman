@@ -8,7 +8,7 @@
 // | Based on the Universal Plugin and prior work by the following authors:    |
 // | Upgraded for GL version 1.5 online config manager                         |
 // |                                                                           |
-// | Copyright (C) 2002-2017 by the following authors:                         |
+// | Copyright (C) 2002-2022 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Tom Willett       - tom AT pigstye DOT net                       |
@@ -39,10 +39,11 @@ if (stripos($_SERVER['PHP_SELF'], basename(__FILE__)) !== false) {
 
 $LANG_FAQ = array (
     'plugin'               => 'FAQ',
-	'plugin_name'          => 'FAQ管理',
+    'plugin_name'          => 'FAQ管理',
     'CATEGORY'             => 'カテゴリー',
     'QUESTION'             => '質問',
     'ANSWER'               => '回答',
+    'HITS'                 => '閲覧数',
     'headerlabel'          => 'FAQ',
     'searchlabel'          => 'FAQ',
     'searchresults'        => 'FAQの検索結果',
@@ -66,6 +67,7 @@ $LANG_FAQ = array (
     'admin_topic_name'     => 'トピック名',
     'admin_topic_question' => '質問',
     'admin_topic_answer'   => '回答',
+    'admin_topic_hits'     => '閲覧数',
     'error'                => 'エラー',
     'error_page'           => 'エラー|FAQ',
     'error_1'              => 'カテゴリーIDが無効です。',

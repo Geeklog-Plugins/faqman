@@ -441,6 +441,11 @@ function FAQMAN_listTopics() {
             'field' => 'answer',
             'sort'  => true,
         ),
+        array(
+            'text'  => $LANG_FAQ['admin_topic_hits'],
+            'field' => 'hits',
+            'sort'  => true,
+        ),
     );
 
     $defaultSortArray = array('field' => 'topicID', 'direction' => 'asc');

@@ -15,7 +15,7 @@
 // | Based on the Universal Plugin and prior work by the following authors:    |
 // | Upgraded for GL version 1.5 online config manager                         |
 // |                                                                           |
-// | Copyright (C) 2002-2017 by the following authors:                         |
+// | Copyright (C) 2002-2022 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Tom Willett       - tom AT pigstye DOT net                       |
@@ -54,7 +54,7 @@ if (stripos($_SERVER['PHP_SELF'], basename(__FILE__)) !== false) {
 function plugin_autoinstall_faqman($pi_name) {
     global $_FAQM_CONF;
     
-    require_once dirname(__FILE__) . '/config.php';
+    require_once __DIR__ . '/config.php';
     
     return array(
         'info'      => array(
@@ -82,7 +82,7 @@ function plugin_load_configuration_faqman($pi_name) {
     global $_CONF;
     
     require_once $_CONF['path_system'] . 'classes/config.class.php';
-    require_once dirname(__FILE__) . '/install_defaults.php';
+    require_once __DIR__ . '/install_defaults.php';
     
     return plugin_initconfig_faqman();
 }
@@ -97,7 +97,7 @@ function plugin_compatible_with_this_version_faqman($pi_name) {
     global $_CONF, $_DB_dbms;
     
     // checks if we support the DBMS the site is running on
-    $dbFile = dirname(__FILE__) . '/sql/' . $_DB_dbms . '_install.php';
+    $dbFile = __DIR__ . '/sql/' . $_DB_dbms . '_install.php';
     clearstatcache();
     
     if (!file_exists($dbFile)) {
