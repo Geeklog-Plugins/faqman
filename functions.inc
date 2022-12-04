@@ -15,7 +15,7 @@
 // | Based on the Universal Plugin and prior work by the following authors:    |
 // | Upgraded for GL version 1.5 online config manager                         |
 // |                                                                           |
-// | Copyright (C) 2002-2017 by the following authors:                         |
+// | Copyright (C) 2002-2022 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Tom Willett       - tom AT pigstye DOT net                       |
@@ -217,7 +217,7 @@ function plugin_searchformat_faqman($id, $contentType, $content)
 */
 function plugin_dopluginsearch_faqman($query, $datestart, $dateend, $topic, $type,
     $author, $keyType, $page = -1, $perPage = -1) {
-    global $_CONF, $_TABLES, $LANG_FAQ;
+    global $_CONF, $_TABLES, $_USER, $LANG_FAQ;
 
     if (empty($type)) {
         $type = 'all';
@@ -232,7 +232,7 @@ function plugin_dopluginsearch_faqman($query, $datestart, $dateend, $topic, $typ
         return array();
     }
 
-    $sql = "SELECT topicID AS id, question AS title, answer AS description, hits, name "
+    $sql = "SELECT topicID AS id, question AS title, answer AS description, hits, name, CURRENT_TIMESTAMP() AS date, 1 AS uid "
         . "  FROM {$_TABLES['faq_topics']} AS t "
         . "LEFT JOIN {$_TABLES['faq_categories']} AS c "
         . "ON t.catID = c.catID "
